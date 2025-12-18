@@ -1,0 +1,125 @@
+local runService = game:GetService("RunService")
+local player = game.Players.LocalPlayer
+
+local rcd = false
+local follow = false
+local followtargets = {}
+local followcurrent = 1
+
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "config"
+GUI.ResetOnSpawn = false
+GUI.Parent = player.PlayerGui
+
+local FollowConfig = Instance.new("TextBox", GUI)
+FollowConfig.Position = UDim2.new(1,0,0.6,0)
+FollowConfig.Size = UDim2.new(0.1,0,0.05,0)
+FollowConfig.AnchorPoint = Vector2.new(1,0)
+FollowConfig.Text = ""
+FollowConfig.PlaceholderText = "[name]"
+FollowConfig.BackgroundTransparency = 0.7
+
+local FollowASButton = Instance.new("TextButton", FollowConfig)
+FollowASButton.Position = UDim2.new(1,0,0,0)
+FollowASButton.Size = UDim2.new(0.2,0,1,0)
+FollowASButton.AnchorPoint = Vector2.new(1,0)
+FollowASButton.Text = "+/-"
+FollowASButton.BackgroundColor = BrickColor.Blue()
+
+local FollowButton = Instance.new("TextButton", GUI)
+FollowButton.Position = UDim2.new(1,0,0.65,0)
+FollowButton.Size = UDim2.new(0.1,0,0.05,0)
+FollowButton.AnchorPoint = Vector2.new(1,0)
+FollowButton.Text = "Follow"
+FollowButton.BackgroundColor = BrickColor.Red()
+
+FollowASButton.Activated:Connect(function()
+	local txt = FollowConfig.Text
+	if game.Players:FindFirstChild(txt) then
+		if not table.find(followtargets, txt) then
+			table.insert(followtargets, txt)
+		else
+			table.remove(followtargets ,table.find(followtargets, txt))
+		end
+	end
+end)
+
+FollowButton.Activated:Connect(function()
+	if follow == true then
+		FollowButton.BackgroundColor = BrickColor.Red()
+		follow = false
+	else
+		FollowButton.BackgroundColor = BrickColor.Green()
+		follow = true
+	end
+end)
+
+local function revCooldown()
+	rcd = true
+	wait(1)
+	rcd = false
+end
+
+local function onCharacterAdded(character)
+	for i,v in character:GetDescendants() do
+		if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+			--v:Destroy()
+		end
+	end
+end
+if player.Character then
+	onCharacterAdded(player.Character)
+end
+player.CharacterAdded:Connect(onCharacterAdded)
+
+runService.Heartbeat:Connect(function()
+	if follow == true then
+		local followname = followtargets[followcurrent]
+		if followname then
+			local followplr = game.Players:FindFirstChild(followtargets[followcurrent])
+			if followplr then
+				local followchar = followplr.Character
+				if followchar then
+					local followhrp = followchar:FindFirstChild("HumanoidRootPart")
+					local followhum = followchar:FindFirstChild("Humanoid")
+					if followhrp then
+						local char = player.Character
+						if char then
+							local hrp = char:FindFirstChild("HumanoidRootPart")
+							if hrp then
+								char:MoveTo(followhrp.Position)
+								fail = false
+								local test = followcurrent + 1
+								if followtargets[test] then
+									followcurrent = test
+								else
+									followcurrent = 1
+								end
+								if followhum then
+									local tool = char:FindFirstChildOfClass("Tool")
+									if tool then
+										for i,v in tool:GetDescendants() do
+											if v:IsA("RemoteEvent") then
+												if tool.Name == "Kawaii Revolver" then
+													if rcd == false then
+														revCooldown()
+														v:FireServer(followhum)
+													end
+												else
+													v:FireServer(followhum)
+												end
+											end
+										end
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	if fail == true then
+		followcurent = 1
+	end
+end)
