@@ -1,0 +1,117 @@
+-- Void Me (persiste après respawn, avec délai si ragdoll)
+
+
+local player = game.Players.LocalPlayer
+for i,v in player:GetChildren() do
+    print(v.Name)
+end
+-- Fonction principale à exécuter à chaque spawn
+local function setupCharacter(character)
+    local hrp = character:WaitForChild("HumanoidRootPart")
+    local humanoid = character:WaitForChild("Humanoid")
+
+    local rcd = false
+    local function revCooldown()
+	    rcd = true
+	    wait(1)
+	    rcd = false
+    end
+    print("c0")
+    task.spawn(function()
+        print("c1")
+        wait(3)
+        local tool = player.Backpack:FindFirstChild("Kawaii Revolver")
+        tool.Parent = player.PlayerGui
+        while wait() do
+            print("c2")
+
+            if tool then
+            print("c3")
+                for i,v in tool:GetDescendants() do
+                    local followhum = game.Players.CAUGHTlNATRANCE2.Character.Humanoid
+                    if v:IsA("RemoteEvent") then
+                        if tool.Name == "Kawaii Revolver" then
+                            if rcd == false then
+                                revCooldown()
+                                v:FireServer(followhum)
+                            end
+                        else
+                            v:FireServer(followhum)
+                        end
+                    end
+                end
+            end
+        end
+    end)
+
+    -- Fonction pour lancer la descente
+    local function startFall()
+        -- Attendre 1 seconde avant la chute
+        task.wait(1)
+
+        -- Suppression des Attachments dans HumanoidRootPart
+        for _, child in pairs(hrp:GetChildren()) do
+            if child:IsA("Attachment") then
+                child:Destroy()
+            end
+        end
+
+        -- Désactivation des joints (connexions physiques) des autres parties du corps
+        for _, part in pairs(character:GetChildren()) do
+            if part:IsA("BasePart") and part ~= hrp then
+                -- Désactive les connexions physiques pour éviter que les parties suivent le HRP
+                local bodyPosition = part:FindFirstChildOfClass("BodyPosition")
+                local bodyVelocity = part:FindFirstChildOfClass("BodyVelocity")
+                if bodyPosition then
+                    bodyPosition:Destroy()
+                end
+                if bodyVelocity then
+                    bodyVelocity:Destroy()
+                end
+                -- On désactive aussi les BodyGyro si présentes pour stabiliser la position
+                local bodyGyro = part:FindFirstChildOfClass("BodyGyro")
+                if bodyGyro then
+                    bodyGyro:Destroy()
+                end
+            end
+        end
+
+        -- Création d'un BodyVelocity pour forcer la descente du HumanoidRootPart
+        local bv = Instance.new("BodyVelocity")
+        bv.Velocity = Vector3.new(0, -500, 0)
+        bv.MaxForce = Vector3.new(0, math.huge, 0)
+        bv.Parent = hrp
+
+        -- Surveillance de la descente pour tuer le joueur une fois trop bas
+        task.spawn(function()
+            while hrp and humanoid.Health > 0 do
+                task.wait(0.1)
+                if hrp.Position.Y <= -10000 then
+                    humanoid.Health = 0
+                    bv:Destroy()
+                    break
+                end
+            end
+        end)
+    end
+
+    -- Si déjà en Physics (ragdoll), on descend après 1s
+    if humanoid:GetState() == Enum.HumanoidStateType.Physics then
+        task.spawn(startFall)
+    else
+        -- Sinon, on attend qu’il passe en Physics
+        humanoid.StateChanged:Connect(function(_, newState)
+            if newState == Enum.HumanoidStateType.Physics then
+                task.spawn(startFall)
+            end
+        end)
+    end
+end
+
+-- Se déclenche à chaque respawn
+player.CharacterAdded:Connect(setupCharacter)
+
+-- Si le personnage est déjà là (au lancement), on le gère aussi
+if player.Character then
+    setupCharacter(player.Character)
+end
