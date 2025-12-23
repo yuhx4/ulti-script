@@ -99,29 +99,37 @@ local function SearchPlayer(text)
 	end
 end
 
-playersService.PlayerAdded:Connect(function(plr)
-	print("c0")
-	if table.find(admins, plr.Name:lower()) then
+local function trapChat(plr)
+	plr.Chatted:Connect(function(msg)
 		print("c1")
-		plr.Chatted:Connect(function(msg)
+		local split = msg:split(" ")
+		local split2 = msg:split(":")
+		if split[1] == "~sync" then
 			print("c2")
-			local split = msg:split(" ")
-			local split2 = msg:split(":")
-			if split[1] == "~sync" then
-				print("c3")
-				channel:SendAsync("!!! Account successfully linked to @"..plr.Name)
-			elseif split[1] == "~loop" then
-				local target = SearchPlayer(split[2])
-				if not table.find(looptargets, target) then
-					table.insert(looptargets, target)
-				end
-			elseif split[1] == "~unloop" then
-				local target = SearchPlayer(split[2])
-				if table.find(looptargets, target) then
-					table.remove(looptargets, table.find(looptargets, target))
-				end
+			channel:SendAsync("!!! Account successfully linked to @"..plr.Name)
+		elseif split[1] == "~loop" then
+			local target = SearchPlayer(split[2])
+			if not table.find(looptargets, target) then
+				table.insert(looptargets, target)
 			end
-		end)
+		elseif split[1] == "~unloop" then
+			local target = SearchPlayer(split[2])
+			if table.find(looptargets, target) then
+				table.remove(looptargets, table.find(looptargets, target))
+			end
+		end
+	end)
+end
+
+for i,v in playersService:GetPlayers() do
+	if table.find(admins, v.Name:lower()) then
+		trapChat(v)
+	end
+end
+
+playersService.PlayerAdded:Connect(function(plr)
+	if table.find(admins, plr.Name:lower()) then
+		trapChat(plr)
 	end
 end)
 
