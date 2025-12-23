@@ -3,6 +3,7 @@ local users = {
 	"DumberRat",
 	"00c3s",
 	"yTrance",
+	"CAUGHTlNATRANCE",
 }
 local toolName = "Grenade 2"
 local player = game.Players.LocalPlayer
