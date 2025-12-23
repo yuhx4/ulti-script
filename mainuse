@@ -26,7 +26,7 @@ local animator = true
 local runService = game:GetService("RunService")
 local workspaceService = game:GetService("Workspace")
 
-if table.find(users, player.Name) then
+--if table.find(users, player.Name) then
 	local GUI = Instance.new("ScreenGui")
 	GUI.Name = "config"
 	GUI.ResetOnSpawn = false
@@ -398,4 +398,4 @@ if table.find(users, player.Name) then
 	end
 
 	player.CharacterAdded:Connect(onCharacterAdded)
-end
+--end
