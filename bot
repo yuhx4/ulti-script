@@ -1,0 +1,193 @@
+local textchatService = game:GetService("TextChatService")
+local runService = game:GetService("RunService")
+local playersService = game:GetService("Players")
+
+local player = playersService.LocalPlayer
+local channel = textchatService:WaitForChild("TextChannels"):WaitForChild("RBXGeneral")
+
+local admins = {
+	"daze4or",
+	"yTrance"
+}
+
+local rcd = false
+local void = false
+local looptargets = {}
+local loopcurrent = 1
+
+local radius = 10
+local speed = 3
+local angle = 0
+
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "config"
+GUI.ResetOnSpawn = false
+GUI.Parent = player.PlayerGui
+
+local VoidButton = Instance.new("TextButton", GUI)
+VoidButton.Position = UDim2.new(1,0,0.5,0)
+VoidButton.Size = UDim2.new(0.1,0,0.05,0)
+VoidButton.AnchorPoint = Vector2.new(1,0)
+VoidButton.Text = "Void"
+VoidButton.BackgroundColor = BrickColor.Red()
+
+VoidButton.Activated:Connect(function()
+	if void == true then
+		VoidButton.BackgroundColor = BrickColor.Red()
+		void = false
+	else
+		VoidButton.BackgroundColor = BrickColor.Green()
+		void = true
+	end
+end)
+
+local function revCooldown()
+	rcd = true
+	wait(1)
+	rcd = false
+end
+
+runService.Heartbeat:Connect(function(dt)
+	local followname = looptargets[loopcurrent]
+	if not followname then loopcurrent = 1 return end
+	local followplr = game.Players:FindFirstChild(looptargets[loopcurrent])
+	if not followplr then loopcurrent = 1 return end
+	local loopchar = followplr.Character
+	if not loopchar then loopcurrent = 1 return end
+	local loophrp = loopchar:FindFirstChild("HumanoidRootPart")
+	local loophum = loopchar:FindFirstChild("Humanoid")
+	if not loophrp or not loophum then loopcurrent = 1 return end
+	local char = player.Character
+	if not char then loopcurrent = 1 return end
+	local hrp = char:FindFirstChild("HumanoidRootPart")
+	if not hrp then loopcurrent = 1 return end
+	
+	angle += speed * dt
+	local x = math.cos(angle) * radius
+	local z = math.sin(angle) * radius
+	
+	char:MoveTo(loophrp.Position + Vector3.new(x, 0, z))
+	local test = loopcurrent + 1
+	if looptargets[test] then
+		loopcurrent = test
+	else
+		loopcurrent = 1
+	end
+	local tool = char:FindFirstChildOfClass("Tool")
+	if not tool then return end
+	for i,v in tool:GetDescendants() do
+		if v:IsA("RemoteEvent") then
+			if tool.Name == "Kawaii Revolver" then
+				if rcd == false then
+					revCooldown()
+					v:FireServer(loophum)
+				end
+			else
+				v:FireServer(loophum)
+			end
+		end
+	end
+end)
+
+local function SearchPlayer(text)
+	if text then
+		for _,plr in pairs(playersService:GetPlayers()) do
+			if string.sub(string.lower(plr.Name),1,string.len(text)) == string.lower(text) then
+				return plr.Name
+			end
+		end
+	end
+end
+
+playersService.PlayerAdded:Connect(function(plr)
+	if table.find(admins, plr.Name) then
+		plr.Chatted:Connect(function(msg)
+			local split = msg:split(" ")
+			local split2 = msg:split(":")
+			if split[1] == "~sync" then
+				channel:SendAsync("!!! Account successfully linked to @"..plr.Name)
+			elseif split[1] == "~loop" then
+				local target = SearchPlayer(split[2])
+				if not table.find(looptargets, target) then
+					table.insert(looptargets, target)
+				end
+			elseif split[1] == "~unloop" then
+				local target = SearchPlayer(split[2])
+				if table.find(looptargets, target) then
+					table.remove(looptargets, table.find(looptargets, target))
+				end
+			end
+		end)
+	end
+end)
+
+local function setupCharacter(character)
+	if void == true then
+		local hrp = character:WaitForChild("HumanoidRootPart")
+		local humanoid = character:WaitForChild("Humanoid")
+
+		-- Function to start the descent
+		local function startFall()
+			-- Wait 1 second before the fall.
+			task.wait(1)
+
+			-- Removing attachments in HumanoidRootPart
+			for _, child in pairs(hrp:GetChildren()) do
+				if child:IsA("Attachment") then
+					child:Destroy()
+				end
+			end
+
+			-- Deactivating the joints (physical connections) of other parts of the body.
+			for _, part in pairs(character:GetChildren()) do
+				if part:IsA("BasePart") and part ~= hrp then
+					-- Disable physical connections to prevent the parties from following the HRP.
+					local bodyPosition = part:FindFirstChildOfClass("BodyPosition")
+					local bodyVelocity = part:FindFirstChildOfClass("BodyVelocity")
+					if bodyPosition then
+						bodyPosition:Destroy()
+					end
+					if bodyVelocity then
+						bodyVelocity:Destroy()
+					end
+					-- We also disable any BodyGyro components if present to stabilize the position.
+					local bodyGyro = part:FindFirstChildOfClass("BodyGyro")
+					if bodyGyro then
+						bodyGyro:Destroy()
+					end
+				end
+			end
+
+			-- Creating a BodyVelocity to force the HumanoidRootPart to move downwards.
+			local bv = Instance.new("BodyVelocity")
+			bv.Velocity = Vector3.new(0, -500, 0)
+			bv.MaxForce = Vector3.new(0, math.huge, 0)
+			bv.Parent = hrp
+
+			-- Monitoring the descent to kill the player once they go too low.
+			task.spawn(function()
+				while hrp and humanoid.Health > 0 do
+					task.wait(0.1)
+					if hrp.Position.Y <= -10000 then
+						humanoid.Health = 0
+						bv:Destroy()
+						break
+					end
+				end
+			end)
+		end
+
+		-- If we're already in Physics (ragdoll) mode, we'll fall after 1 second.
+		if humanoid:GetState() == Enum.HumanoidStateType.Physics then
+			task.spawn(startFall)
+		else
+			-- Otherwise, we'll wait until it's released in Physics.
+			humanoid.StateChanged:Connect(function(_, newState)
+				if newState == Enum.HumanoidStateType.Physics then
+					task.spawn(startFall)
+				end
+			end)
+		end
+	end
+end
+player.CharacterAdded:Connect(setupCharacter)
