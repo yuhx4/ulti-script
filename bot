@@ -100,11 +100,15 @@ local function SearchPlayer(text)
 end
 
 playersService.PlayerAdded:Connect(function(plr)
-	if table.find(admins, plr.Name) then
+	print("c0")
+	if table.find(admins, plr.Name:lower()) then
+		print("c1")
 		plr.Chatted:Connect(function(msg)
+			print("c2")
 			local split = msg:split(" ")
 			local split2 = msg:split(":")
 			if split[1] == "~sync" then
+				print("c3")
 				channel:SendAsync("!!! Account successfully linked to @"..plr.Name)
 			elseif split[1] == "~loop" then
 				local target = SearchPlayer(split[2])
