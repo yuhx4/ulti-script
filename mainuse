@@ -1,0 +1,400 @@
+local users = {
+	"daze4or",
+	"DumberRat",
+	"00c3s",
+	"yTrance",
+}
+local toolName = "Grenade 2"
+local player = game.Players.LocalPlayer
+
+local bodyVelocity
+local boostConnection
+
+local go = false
+local antispike = true
+local tracking = false
+local killaura = false
+local tagged = nil
+local rcd = false
+local fullstop = false
+local follow = false
+local followtargets = {}
+local followcurrent = 1
+local animator = true
+
+local runService = game:GetService("RunService")
+local workspaceService = game:GetService("Workspace")
+
+if table.find(users, player.Name) then
+	local GUI = Instance.new("ScreenGui")
+	GUI.Name = "config"
+	GUI.ResetOnSpawn = false
+	GUI.Parent = player.PlayerGui
+
+	local AnimatorButton = Instance.new("TextButton", GUI)
+	AnimatorButton.Position = UDim2.new(1,0,0.35,0)
+	AnimatorButton.Size = UDim2.new(0.1,0,0.05,0)
+	AnimatorButton.AnchorPoint = Vector2.new(1,1)
+	AnimatorButton.Text = "Animator"
+	AnimatorButton.BackgroundColor = BrickColor.Green()
+
+	local FullstopButton = Instance.new("TextButton", GUI)
+	FullstopButton.Position = UDim2.new(1,0,0.40,0)
+	FullstopButton.Size = UDim2.new(0.1,0,0.05,0)
+	FullstopButton.AnchorPoint = Vector2.new(1,1)
+	FullstopButton.Text = "Full-stop"
+	FullstopButton.BackgroundColor = BrickColor.Red()
+
+	local KillAuraButton = Instance.new("TextButton", GUI)
+	KillAuraButton.Position = UDim2.new(1,0,0.45,0)
+	KillAuraButton.Size = UDim2.new(0.1,0,0.05,0)
+	KillAuraButton.AnchorPoint = Vector2.new(1,1)
+	KillAuraButton.Text = "Kill Aura"
+	KillAuraButton.BackgroundColor = BrickColor.Red()
+
+	local AntiSpikeButton = Instance.new("TextButton", GUI)
+	AntiSpikeButton.Position = UDim2.new(1,0,0.5,0)
+	AntiSpikeButton.Size = UDim2.new(0.1,0,0.05,0)
+	AntiSpikeButton.AnchorPoint = Vector2.new(1,1)
+	AntiSpikeButton.Text = "AntiSpike"
+	AntiSpikeButton.BackgroundColor = BrickColor.Green()
+
+	local TrackingButton = Instance.new("TextButton", GUI)
+	TrackingButton.Position = UDim2.new(1,0,0.5,0)
+	TrackingButton.Size = UDim2.new(0.1,0,0.05,0)
+	TrackingButton.AnchorPoint = Vector2.new(1,0)
+	TrackingButton.Text = "Tracking"
+	TrackingButton.BackgroundColor = BrickColor.Red()
+
+	local SpeedConfig = Instance.new("TextBox", GUI)
+	SpeedConfig.Position = UDim2.new(1,0,0.55,0)
+	SpeedConfig.Size = UDim2.new(0.1,0,0.05,0)
+	SpeedConfig.AnchorPoint = Vector2.new(1,0)
+	SpeedConfig.Text = "150"
+	SpeedConfig.PlaceholderText = "[150]"
+	SpeedConfig.BackgroundTransparency = 0.7
+
+	local FollowConfig = Instance.new("TextBox", GUI)
+	FollowConfig.Position = UDim2.new(1,0,0.6,0)
+	FollowConfig.Size = UDim2.new(0.1,0,0.05,0)
+	FollowConfig.AnchorPoint = Vector2.new(1,0)
+	FollowConfig.Text = ""
+	FollowConfig.PlaceholderText = "[name]"
+	FollowConfig.BackgroundTransparency = 0.7
+
+	local FollowASButton = Instance.new("TextButton", FollowConfig)
+	FollowASButton.Position = UDim2.new(1,0,0,0)
+	FollowASButton.Size = UDim2.new(0.2,0,1,0)
+	FollowASButton.AnchorPoint = Vector2.new(1,0)
+	FollowASButton.Text = "+/-"
+	FollowASButton.BackgroundColor = BrickColor.Blue()
+
+	local FollowButton = Instance.new("TextButton", GUI)
+	FollowButton.Position = UDim2.new(1,0,0.65,0)
+	FollowButton.Size = UDim2.new(0.1,0,0.05,0)
+	FollowButton.AnchorPoint = Vector2.new(1,0)
+	FollowButton.Text = "Follow"
+	FollowButton.BackgroundColor = BrickColor.Red()
+
+	local function revCooldown()
+		rcd = true
+		wait(2)
+		rcd = false
+	end
+
+	AnimatorButton.Activated:Connect(function()
+		if animator == true then
+			AnimatorButton.BackgroundColor = BrickColor.Red()
+			animator = false
+		else
+			AnimatorButton.BackgroundColor = BrickColor.Green()
+			animator = true
+		end
+	end)
+
+	FullstopButton.Activated:Connect(function()
+		if fullstop == true then
+			FullstopButton.BackgroundColor = BrickColor.Red()
+			fullstop = false
+		else
+			FullstopButton.BackgroundColor = BrickColor.Green()
+			fullstop = true
+		end
+	end)
+
+	AntiSpikeButton.Activated:Connect(function()
+		if antispike == true then
+			AntiSpikeButton.BackgroundColor = BrickColor.Red()
+			antispike = false
+		else
+			AntiSpikeButton.BackgroundColor = BrickColor.Green()
+			antispike = true
+		end
+	end)
+
+	TrackingButton.Activated:Connect(function()
+		if tracking == true then
+			TrackingButton.BackgroundColor = BrickColor.Red()
+			tracking = false
+		else
+			TrackingButton.BackgroundColor = BrickColor.Green()
+			tracking = true
+		end
+	end)
+
+	KillAuraButton.Activated:Connect(function()
+		if killaura == true then
+			KillAuraButton.BackgroundColor = BrickColor.Red()
+			killaura = false
+		else
+			KillAuraButton.BackgroundColor = BrickColor.Green()
+			killaura = true
+		end
+	end)
+
+	FollowASButton.Activated:Connect(function()
+		local txt = FollowConfig.Text
+		if game.Players:FindFirstChild(txt) then
+			if not table.find(followtargets, txt) then
+				table.insert(followtargets, txt)
+			else
+				table.remove(followtargets ,table.find(followtargets, txt))
+			end
+		end
+	end)
+
+	FollowButton.Activated:Connect(function()
+		if follow == true then
+			FollowButton.BackgroundColor = BrickColor.Red()
+			follow = false
+		else
+			FollowButton.BackgroundColor = BrickColor.Green()
+			follow = true
+		end
+	end)
+
+	runService.Heartbeat:Connect(function()
+		if antispike == true then
+			for i,v in workspaceService:GetChildren() do
+				if v.Name == "Spike Trap" then
+					local char = player.Character
+					if char then
+						local hrp = char:FindFirstChild("HumanoidRootPart")
+						if hrp then
+							if (hrp.Position - v.PrimaryPart.Position).Magnitude <= 10 then
+								for i,v in char:GetChildren() do
+									if v:IsA("BasePart") then
+										v.CanTouch = false
+										v.CanQuery = false
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		else
+			local char = player.Character
+			if char then
+				for i,v in char:GetChildren() do
+					if v:IsA("BasePart") then
+						v.CanQuery = true
+						v.CanTouch = true
+					end
+				end
+			end
+		end
+		local fail = true
+		if follow == true then
+			local followname = followtargets[followcurrent]
+			if followname then
+				local followplr = game.Players:FindFirstChild(followtargets[followcurrent])
+				if followplr then
+					local followchar = followplr.Character
+					if followchar then
+						local followhrp = followchar:FindFirstChild("HumanoidRootPart")
+						if followhrp then
+							local char = player.Character
+							if char then
+								local hrp = char:FindFirstChild("HumanoidRootPart")
+								if hrp then
+									char:MoveTo(followhrp.Position)
+									fail = false
+									local test = followcurrent + 1
+									if followtargets[test] then
+										followcurrent = test
+									else
+										followcurrent = 1
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+		if fail == true then
+			followcurent = 1
+		end
+	end)
+
+	local function applyGroundBoost()
+		print("c0")
+		local character = player.Character
+		if not character then return end
+
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+		local humanoid = character:FindFirstChildOfClass("Humanoid")
+		if not humanoidRootPart or not humanoid then return end
+
+		if humanoid.MoveDirection.Magnitude == 0 then
+			return
+		end
+
+		local lookDirection = humanoidRootPart.CFrame.LookVector
+
+		local speed = 20
+		local maxSpeed = 150
+		if tonumber(SpeedConfig.Text) then
+			maxSpeed = tonumber(SpeedConfig.Text)
+			if maxSpeed > 150 then
+				speed = maxSpeed - 100
+			end
+		end
+		local acceleration = 10
+
+		bodyVelocity = Instance.new("BodyVelocity")
+		bodyVelocity.MaxForce = Vector3.new(1e5, 0, 1e5)
+		bodyVelocity.Velocity = Vector3.zero
+		bodyVelocity.Parent = humanoidRootPart
+
+		boostConnection = runService.Heartbeat:Connect(function()
+			print("c1")
+			if not character or not character.Parent then
+				boostConnection:Disconnect()
+				boostConnection = nil
+				if bodyVelocity then
+					bodyVelocity:Destroy()
+					bodyVelocity = nil
+				end
+				return
+			end
+			if humanoidRootPart and tracking == true then
+				lookDirection = humanoidRootPart.CFrame.LookVector
+			end
+			speed = math.min(speed + acceleration, maxSpeed)
+			bodyVelocity.Velocity = lookDirection * speed
+		end)
+	end
+
+	local function stopBoost()
+		if boostConnection then
+			boostConnection:Disconnect()
+			boostConnection = nil
+		end
+
+		if bodyVelocity then
+			bodyVelocity:Destroy()
+			bodyVelocity = nil
+		end
+
+		local character = player.Character
+		if not character then return end
+
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+
+		if fullstop == true then
+			humanoidRootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+		end
+	end
+
+	local function fakeDropTool()
+		local character = player.Character
+		local backpack = player.Backpack
+		if not character or not backpack then return end
+
+		local tool = character:FindFirstChildOfClass("Tool")
+		if tool and tool.Name == toolName then
+			tool.Parent = backpack
+		end
+	end
+
+	local function onCharacterAdded(character)
+		task.spawn(function()
+			wait(1)
+			if animator == false then
+				for i,v in character:GetDescendants() do
+					if v.Name == "Animator" then
+						v:Destroy()
+					end
+				end
+			end
+		end)
+		character.ChildAdded:Connect(function(child)
+			if child:IsA("Tool") and child.Name == toolName then
+				applyGroundBoost()
+				fakeDropTool()
+			elseif child:IsA("Tool") and child.Name == "Kawaii Revolver" then
+				if rcd == false and killaura == true then
+					if tagged then
+						local tchar = tagged.Parent
+						if tchar then
+							local thrp = tchar:FindFirstChild("HumanoidRootPart")
+							if thrp then
+								local dre = child:FindFirstChild("DamageRemote")
+								local rre = child:FindFirstChild("ReplicateRemote")
+								if dre and rre then
+									revCooldown()
+									dre:FireServer(tagged)
+									rre:FireServer(thrp.Position)
+								end
+							end
+						end
+					end
+				end
+			elseif child:IsA("Tool") and killaura == true then
+				local cd = 15
+				local ch = nil
+				for i,v in game.Workspace:GetChildren() do
+					local hrp = v:FindFirstChild("HumanoidRootPart")
+					if hrp and v~=character then
+						local distance = (hrp.Position - character.HumanoidRootPart.Position).Magnitude
+						if distance < cd and v:FindFirstChildOfClass("Humanoid") then
+							cd = distance
+							ch = v:FindFirstChildOfClass("Humanoid")
+						end
+					end
+				end
+				if child:FindFirstChildOfClass("RemoteEvent") and ch then
+					child:FindFirstChildOfClass("RemoteEvent"):FireServer(ch)
+					tagged = ch
+					local hum = character:FindFirstChildOfClass("Humanoid")
+					if hum then
+						local animator = hum:FindFirstChild("Animator")
+						local animationid = child:FindFirstChild("Attack")
+						if animator and animationid then
+							animator:LoadAnimation(animationid):Play()
+						end
+						for i,v in child:GetDescendants() do
+							if v:IsA("Sound") then
+								v:Play()
+							end
+						end
+					end
+				end
+			end
+		end)
+
+		character.ChildRemoved:Connect(function(child)
+			if child:IsA("Tool") and child.Name == toolName then
+				stopBoost()
+			end
+		end)
+	end
+
+	if player.Character then
+		onCharacterAdded(player.Character)
+	end
+
+	player.CharacterAdded:Connect(onCharacterAdded)
+end
