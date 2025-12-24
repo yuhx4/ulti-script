@@ -106,7 +106,7 @@ local function trapChat(plr)
 		local split2 = msg:split(":")
 		if split[1] == "~sync" then
 			print("c2")
-			channel:SendAsync("!!! Account successfully synced to @"..plr.Name)
+			channel:SendAsync("!!! Account successfully synced to "..plr.Name)
 		elseif split[1] == "~loop" then
 			local target = SearchPlayer(split[2])
 			if not table.find(looptargets, target) then
