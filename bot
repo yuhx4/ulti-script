@@ -79,8 +79,10 @@ runService.Heartbeat:Connect(function(dt)
 		if v:IsA("RemoteEvent") then
 			if tool.Name == "Kawaii Revolver" then
 				if rcd == false then
-					revCooldown()
-					v:FireServer(loophum)
+					if loophum.Health >=20 then
+						revCooldown()
+						v:FireServer(loophum)
+					end
 				end
 			else
 				v:FireServer(loophum)
