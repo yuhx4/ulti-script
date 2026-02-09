@@ -43,7 +43,7 @@ end)
 
 local function revCooldown()
 	rcd = true
-	wait(1)
+	wait(0.8)
 	rcd = false
 end
 
