@@ -14,6 +14,8 @@ local rcd = false
 local void = false
 local looptargets = {}
 local loopcurrent = 1
+local grab = false
+local orbit = true
 
 local radius = 10
 local speed = 3
@@ -48,31 +50,59 @@ local function revCooldown()
 end
 
 runService.Heartbeat:Connect(function(dt)
+    if grab == true then
+        local char = player.Character
+    	if not char then return end
+    	local hrp = char:FindFirstChild("HumanoidRootPart")
+    	if not hrp then return end
+        local sword = game.Workspace:FindFirstChild("Steel Sword")
+    	if sword then
+    	    local handle = sword:FindFirstChild("Handle")
+    	    if handle then
+    	        char:MoveTo(handle.Position)
+            	return
+    	    end
+    	end
+    end
 	local followname = looptargets[loopcurrent]
 	if not followname then loopcurrent = 1 return end
 	local followplr = game.Players:FindFirstChild(looptargets[loopcurrent])
 	if not followplr then loopcurrent = 1 return end
 	local loopchar = followplr.Character
-	if not loopchar then loopcurrent = 1 return end
+	if not loopchar then
+	    local char = player.Character
+    	if not char then return end
+    	local hrp = char:FindFirstChild("HumanoidRootPart")
+    	if not hrp then return end
+    	char:MoveTo(Vector3.new(-168, 89, -81))
+	    return
+	end
 	local loophrp = loopchar:FindFirstChild("HumanoidRootPart")
 	local loophum = loopchar:FindFirstChild("Humanoid")
 	if not loophrp or not loophum then loopcurrent = 1 return end
+	if loophrp.Position.Y <= -400 then
+	    local char = player.Character
+    	if not char then return end
+    	local hrp = char:FindFirstChild("HumanoidRootPart")
+    	if not hrp then return end
+    	char:MoveTo(Vector3.new(-168, 89, -81))
+	    return
+	end
 	local char = player.Character
 	if not char then loopcurrent = 1 return end
 	local hrp = char:FindFirstChild("HumanoidRootPart")
 	if not hrp then loopcurrent = 1 return end
 	
-	angle += speed * dt
+	angle = angle + (speed * dt)
 	local x = math.cos(angle) * radius
 	local z = math.sin(angle) * radius
 	
-	char:MoveTo(loophrp.Position + Vector3.new(x, 1, z))
-	local test = loopcurrent + 1
-	if looptargets[test] then
-		loopcurrent = test
+	if orbit == true then
+	    char:MoveTo(loophrp.Position + Vector3.new(x, 1, z))
 	else
-		loopcurrent = 1
+	    char:MoveTo(Vector3.new(math.random(-200,200), 100, math.random(-200,200)))
 	end
+	
 	local tool = char:FindFirstChildOfClass("Tool")
 	if not tool then return end
 	for i,v in tool:GetDescendants() do
@@ -103,11 +133,9 @@ end
 
 local function trapChat(plr)
 	plr.Chatted:Connect(function(msg)
-		print("c1")
 		local split = msg:split(" ")
 		local split2 = msg:split(":")
 		if split[1] == "~sync" then
-			print("c2")
 			channel:SendAsync("!Account successfully synced to "..plr.Name)
 		elseif split[1] == "~loop" then
 			local target = SearchPlayer(split[2])
@@ -119,6 +147,24 @@ local function trapChat(plr)
 			if table.find(looptargets, target) then
 				table.remove(looptargets, table.find(looptargets, target))
 			end
+		elseif split[1] == "~clear" then
+			looptargets = {}
+		elseif split[1] == "~chat" then
+			looptargets = {}
+			local msgstart = #split[1] + 2
+			local message = string.sub(msg, msgstart)
+			channel:SendAsync(message)
+		elseif split[1] == "~grab" then
+			grab = true
+		elseif split[1] == "~ungrab" then
+			grab = false
+		elseif split[1] == "~destroy" then
+		    GUI:Destroy()
+			script:Destroy()
+		elseif split[1] == "~orbit" then
+		    orbit = true
+		elseif split[1] == "~unorbit" then
+    	    orbit = false
 		end
 	end)
 end
