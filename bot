@@ -57,7 +57,7 @@ runService.Heartbeat:Connect(function(dt)
     	local hrp = char:FindFirstChild("HumanoidRootPart")
     	if not hrp then return end
         local sword = game.Workspace:FindFirstChild("Steel Sword")
-    	if sword then
+    	if sword and not char:FindFirstChild("Steel Sword") then
     	    local handle = sword:FindFirstChild("Handle")
     	    if handle then
     	        char:MoveTo(handle.Position)
