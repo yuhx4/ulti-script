@@ -34,6 +34,12 @@ VoidButton.AnchorPoint = Vector2.new(1,0)
 VoidButton.Text = "Void"
 VoidButton.BackgroundColor = BrickColor.Red()
 
+local VirtualUser = game:GetService("VirtualUser")
+player.Idled:connect(function()
+	VirtualUser:CaptureController()
+	VirtualUser:ClickButton2(Vector2.new())
+end)
+
 VoidButton.Activated:Connect(function()
 	if void == true then
 		VoidButton.BackgroundColor = BrickColor.Red()
