@@ -8,7 +8,8 @@ local channel = textchatService:WaitForChild("TextChannels"):WaitForChild("RBXGe
 local admins = {
 	"daze4or",
 	"ytrance",
-	"urkidzpiug"
+	"urkidzpiug",
+	"godalvxd"
 }
 
 local rcd = false
