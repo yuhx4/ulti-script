@@ -14,9 +14,9 @@ local admins = {
 
 local rcd = false
 local void = false
-local looptargets = {}
+local looptargets = {"50evans"}
 local loopcurrent = 1
-local grab = false
+local grab = true
 local orbit = true
 
 local radius = 10
@@ -34,6 +34,12 @@ VoidButton.Size = UDim2.new(0.1,0,0.05,0)
 VoidButton.AnchorPoint = Vector2.new(1,0)
 VoidButton.Text = "Void"
 VoidButton.BackgroundColor = BrickColor.Red()
+
+for i,v in game.Workspace:GetDescendants() do
+    if v:IsA("Seat") then
+        v:Destroy()
+    end
+end
 
 local VirtualUser = game:GetService("VirtualUser")
 player.Idled:connect(function()
