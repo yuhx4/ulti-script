@@ -14,7 +14,7 @@ local admins = {
 
 local rcd = false
 local void = false
-local looptargets = {"50evans"}
+local looptargets = {}
 local loopcurrent = 1
 local grab = true
 local orbit = true
