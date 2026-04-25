@@ -15,13 +15,15 @@ for i,v in game.Workspace:GetDescendants() do
 	end
 end
 
-game.Workspace.DescendantAdded:Connect(function()
-	-- if spike model then delete
+game.Workspace.DescendantAdded:Connect(function(v)
+	if v.Name == "Spike Trap" then
+		v:Destroy()
+	end
 end)
 
 Player.CharacterAdded:Connect(function(Character)
 	wait()
-	local ragdolled = Character:FindFirstChildOfClass("BoolValue")
+	local ragdolled = Character:FindFirstChild("Ragdolled")
 	if ragdolled then
 		ragdolled.Changed:Connect(function(val)
 			if val == true then
@@ -118,39 +120,67 @@ local SkidFling = function(TargetPlayer)
 		end
 
 		local SFBasePart = function(BasePart)
-			local TimeToWait = 1.5
+			local TimeToWait = 2
 			local Time = tick()
 			local Angle = 0
-			local saved_cframe = RootPart.CFrame
-			local saved_velocity = RootPart.Velocity
-			local saved_platform_stand = Humanoid.PlatformStand
-			local nan_value = (0) / (0)
-			local nan_vector = Vector3.new(nan_value, nan_value, nan_value)
-			Humanoid.PlatformStand = true
+
 			repeat
 				if RootPart and THumanoid then
-					task.defer(function()
-						if RootPart and THumanoid then
-							return
-						end
-						Humanoid.PlatformStand = saved_platform_stand
-						RootPart.AssemblyLinearVelocity = Vector3.zero
-						RootPart.AssemblyAngularVelocity = Vector3.zero
-						RootPart.CFrame = saved_cframe RootPart.Velocity = saved_velocity
-						RootPart.RotVelocity = Vector3.zero
-						pcall(function()
-							sethiddenproperty(player_root, "PhysicsRepRootPart", target_root)
-						end)
-						--pcall(sethiddenproperty, RootPart, "PhysicsRepRootPart", nil)
-					end)
+					if BasePart.Velocity.Magnitude < 50 then
+						Angle = Angle + 100
+
+						FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle),0 ,0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(2.25, 1.5, -2.25) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(-2.25, -1.5, 2.25) + THumanoid.MoveDirection * BasePart.Velocity.Magnitude / 1.25, CFrame.Angles(math.rad(Angle), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, 1.5, 0) + THumanoid.MoveDirection,CFrame.Angles(math.rad(Angle), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, -1.5, 0) + THumanoid.MoveDirection,CFrame.Angles(math.rad(Angle), 0, 0))
+						task.wait()
+					else
+						FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, -1.5, -THumanoid.WalkSpeed), CFrame.Angles(0, 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, 1.5, THumanoid.WalkSpeed), CFrame.Angles(math.rad(90), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, 1.5, TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(math.rad(90), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, -1.5, -TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(0, 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, 1.5, TRootPart.Velocity.Magnitude / 1.25), CFrame.Angles(math.rad(90), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(math.rad(90), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, -1.5 ,0), CFrame.Angles(math.rad(-90), 0, 0))
+						task.wait()
+
+						FPos(BasePart, CFrame.new(0, -1.5, 0), CFrame.Angles(0, 0, 0))
+						task.wait()
+					end
 				else
 					break
 				end
 			until BasePart.Velocity.Magnitude > 500 or BasePart.Parent ~= TargetPlayer.Character or TargetPlayer.Parent ~= Players or not TargetPlayer.Character == TCharacter or THumanoid.Sit or Humanoid.Health <= 0 or tick() > Time + TimeToWait
-			layer_root.CFrame = RootPart.CFrame
-			RootPart.AssemblyLinearVelocity = nan_vector RootPart.AssemblyAngularVelocity = nan_vector pcall(function()
-				Humanoid:Move(nan_vector)
-			end)
 		end
 
 		workspace.FallenPartsDestroyHeight = 0/0
